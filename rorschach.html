@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" version="1.0" style="background-color: black">
+	<script>
+		const defaultState = {
+			sizeX: 0,
+			sizeY: 0,
+			spread: 50,
+			offset: 5,
+			symX: true,
+			symY: true,
+			pointCount: 1200,
+			pointAttr: { color: 0 },
+			delay: 5000,
+			frameCount: 6
+		};
+
+		const getRand = (x) => Math.floor(Math.random() * x);
+
+		const getOffset = (state) => {
+			let theta = getRand(360);
+			let radius = getRand(state.spread);
+			return ({x: (radius * Math.cos(theta)), y: (radius * Math.sin(theta))});
+		};
+
+		const generatePoints = function* (state) {
+			let currX = getRand(state.sizeX);
+			let currY = getRand(state.sizeY);
+			// yield up to four points on each iteration
+			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
+				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
+				if (state.symX)
+					yield ({x: (state.sizeX - currX), y: currY, id: `pnt${pntNdx}symX`, ...state.pointAttr});
+				if (state.symY)
+					yield ({x: currX, y: (state.sizeY - currY), id: `pnt${pntNdx}symY`, ...state.pointAttr});
+				if (state.symX && state.symY)
+					yield ({x: (state.sizeX - currX), y: (state.sizeY - currY), id: `pnt${pntNdx}bothSym`, ...state.pointAttr});
+				let mover = getOffset(state);
+				currX += mover.x;
+				currY += mover.y;
+				state.offset = getRand(defaultState.offset);
+				if (pntNdx % 17 == 3) {
+					// let the symmetry settings randomly change every 17 iterations
+					//  because it increases the randomness of the output
+					state.symY = Math.floor(currY % 2) == 1;
+					state.symX = Math.floor(currX % 2) == 1;
+				}
+			}
+		};
+
+		const drawPoint = ({x, y, id, color}) => {
+			const result = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			result.setAttribute("id", id);
+			result.setAttribute("cx", `${x}`);
+			result.setAttribute("cy", `${y}`);
+			result.setAttribute("r", `1`);
+			const currCol = `hsl(${color} 100% 50%)`;
+			result.setAttribute("fill", currCol);
+			result.setAttribute("stroke", currCol);
+			return result;
+		};
+
+		const buildSvgTag = () => {
+			const result = document.createElementNS("http://www.w3.org/2000/svg", "g");
+			const currState = JSON.parse(JSON.stringify(defaultState));
+			currState.pointAttr.color = getRand(360);
+			currState.sizeX = window.innerWidth;
+			currState.sizeY = window.innerHeight;
+			[...generatePoints(currState)].map(drawPoint).forEach(x => result.appendChild(x));
+			//result.setAttribute('transform', 'matrix(' + myRot(buildParms.get('deg')) + ' 0 0)');
+			return result;
+		};
+
+		const loadNew = () => {
+			const frameDelay = defaultState.delay / defaultState.frameCount;
+			const svgTag = document.getElementsByTagName("svg")[0];
+			for (let currFrame = 0; currFrame < defaultState.frameCount; currFrame++) {
+				let currG = buildSvgTag();
+				let currDelay = frameDelay * (currFrame + 1);
+				window.setTimeout(x => svgTag.appendChild(currG), currDelay);
+				window.setTimeout(x => svgTag.removeChild(currG), (currDelay + defaultState.delay));
+			}
+			// fix the viewport and viewbox
+			window.setTimeout(loadNew, defaultState.delay);
+		};
+
+		const viewHeight = (window.innerHeight * .98);
+		const viewWidth = (window.innerWidth * .98);
+		const svgTag = document.getElementsByTagName("svg")[0];
+		svgTag.setAttribute('viewbox', `0 0 ${viewWidth} ${viewHeight}`);
+		svgTag.setAttribute('height', viewHeight);
+		svgTag.setAttribute('width', viewWidth);
+		loadNew();
+	</script>
+</svg>
