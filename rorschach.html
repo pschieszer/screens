@@ -5,14 +5,13 @@
 			sizeX: 0,
 			sizeY: 0,
 			spread: 50,
-			offset: 5,
 			symX: true,
 			symY: true,
 			pointCount: 1200,
 			pointAttr: { color: 0 },
 			delay: 5000,
 			frameCount: 6,
-			displayMode: undefined
+			displayMode: "dots"
 		};
 
 		const getRand = (x) => Math.floor(Math.random() * x);
@@ -38,7 +37,6 @@
 				let mover = getOffset(state);
 				currX += mover.x;
 				currY += mover.y;
-				state.offset = getRand(defaultState.offset);
 				if (pntNdx % 17 == 3) {
 					// let the symmetry settings randomly change every 17 iterations
 					//  because it increases the randomness of the output
@@ -82,14 +80,22 @@
 			return result;
 		};
 
+		const setParam = (buildParms, attrib, state) => {
+			const requested = buildParms.get(attrib);
+			state[attrib] = (requested) ? requested : defaultState[attrib];
+		}
+
 		const getState = () => {
 			const result = JSON.parse(JSON.stringify(defaultState));
 			result.pointAttr.color = getRand(360);
 			result.sizeX = window.innerWidth;
 			result.sizeY = window.innerHeight;
 			const buildParms = new URLSearchParams(window.location.search);
-			const requestedDisplayMode = buildParms.get('displayMode');
-			result.displayMode = (requestedDisplayMode) ? requestedDisplayMode : "dots";
+			setParam(buildParms, 'displayMode', result);
+			setParam(buildParms, 'pointCount', result);
+			setParam(buildParms, 'delay', result);
+			setParam(buildParms, 'frameCount', result);
+
 			return result;
 		};
 
