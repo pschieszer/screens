@@ -4,7 +4,7 @@
 		const defaultState = {
 			sizeX: 0,
 			sizeY: 0,
-			spread: 50,
+			spread: 75,
 			symX: true,
 			symY: true,
 			pointCount: 1200,
@@ -83,7 +83,9 @@
 		const setParam = (buildParms, attrib, state) => {
 			const requested = buildParms.get(attrib);
 			state[attrib] = (requested) ? requested : defaultState[attrib];
-		}
+		};
+
+		const requestable = ['displayMode', 'pointCount', 'delay', 'frameCount', 'spread'];
 
 		const getState = () => {
 			const result = JSON.parse(JSON.stringify(defaultState));
@@ -91,10 +93,7 @@
 			result.sizeX = window.innerWidth;
 			result.sizeY = window.innerHeight;
 			const buildParms = new URLSearchParams(window.location.search);
-			setParam(buildParms, 'displayMode', result);
-			setParam(buildParms, 'pointCount', result);
-			setParam(buildParms, 'delay', result);
-			setParam(buildParms, 'frameCount', result);
+			requestable.forEach(x => setParam(buildParms, x, result));
 
 			return result;
 		};
