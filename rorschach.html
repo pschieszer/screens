@@ -11,7 +11,8 @@
 			pointCount: 1200,
 			pointAttr: { color: 0 },
 			delay: 5000,
-			frameCount: 6
+			frameCount: 6,
+			displayMode: undefined
 		};
 
 		const getRand = (x) => Math.floor(Math.random() * x);
@@ -47,7 +48,7 @@
 			}
 		};
 
-		const drawPoint = ({x, y, id, color}) => {
+		const drawDot = ({x, y, id, color}) => {
 			const result = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 			result.setAttribute("id", id);
 			result.setAttribute("cx", `${x}`);
@@ -59,14 +60,50 @@
 			return result;
 		};
 
+		// continguous blocks of code points that have a bunch of emojis to choose from
+		const EmojiBox = [[0x1F600, 0x1F6BF], [0x1F300, 0x1F53D], [0x1F910, 0x1F99F]];
+
+		const getEmojiCodePoint = () => {
+			const [min, max] = EmojiBox[getRand(EmojiBox.length)];
+			return getRand(max - min) + min;
+		}
+
+		const selectEmoji = () => String.fromCodePoint(getEmojiCodePoint());
+
+		const drawEmoji = ({x, y, id, color}) => {
+			const result = document.createElementNS("http://www.w3.org/2000/svg", "text");
+			result.setAttributeNS(null, "x", x);
+			result.setAttributeNS(null, "y", y);
+			result.setAttribute("id", id);
+			const currCol = `hsl(${color} 100% 50%)`;
+			result.setAttribute("fill", currCol);
+			result.setAttribute("stroke", currCol);
+			result.appendChild(document.createTextNode(selectEmoji()));
+			return result;
+		};
+
+		const getState = () => {
+			const result = JSON.parse(JSON.stringify(defaultState));
+			result.pointAttr.color = getRand(360);
+			result.sizeX = window.innerWidth;
+			result.sizeY = window.innerHeight;
+			const buildParms = new URLSearchParams(window.location.search);
+			const requestedDisplayMode = buildParms.get('displayMode');
+			result.displayMode = (requestedDisplayMode) ? requestedDisplayMode : "dots";
+			return result;
+		};
+
+		const GeneratorLookup = [["dots", drawDot], ["emojis", drawEmoji]];
+
+		const getGenerator = ({ displayMode }) => {
+			const foundMode = GeneratorLookup.filter(x => x[0] === displayMode).map(x => x[1]).shift();
+			return (foundMode) ? foundMode : drawDot;
+		};
+
 		const buildSvgTag = () => {
 			const result = document.createElementNS("http://www.w3.org/2000/svg", "g");
-			const currState = JSON.parse(JSON.stringify(defaultState));
-			currState.pointAttr.color = getRand(360);
-			currState.sizeX = window.innerWidth;
-			currState.sizeY = window.innerHeight;
-			[...generatePoints(currState)].map(drawPoint).forEach(x => result.appendChild(x));
-			//result.setAttribute('transform', 'matrix(' + myRot(buildParms.get('deg')) + ' 0 0)');
+			const currState = getState();
+			[...generatePoints(currState)].map(getGenerator(currState)).forEach(x => result.appendChild(x));
 			return result;
 		};
 
