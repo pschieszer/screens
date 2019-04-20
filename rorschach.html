@@ -50,10 +50,11 @@
 		const sinus = function* (state) {
 			let currX = getRand(state.sizeX);
 			let currY = getRand(state.sizeY);
-			const amplitude = state.sizeY / state.frameCount;
+			const nearY = Math.min((state.sizeY - currY), currY);
+			const amplitude = nearY / 2;
 			const zeroX = currX;
 			const zeroY = currY;
-			const incX = (state.sizeX / state.pointCount);
+			const incX = ((state.sizeX - zeroX) / state.pointCount);
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
