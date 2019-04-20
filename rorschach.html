@@ -11,7 +11,8 @@
 			pointAttr: { color: 0 },
 			delay: 5000,
 			frameCount: 6,
-			displayMode: "dots"
+			displayMode: "dots",
+			pointSource: "rorschach"
 		};
 
 		const getRand = (x) => Math.floor(Math.random() * x);
@@ -22,7 +23,7 @@
 			return ({x: (radius * Math.cos(theta)), y: (radius * Math.sin(theta))});
 		};
 
-		const generatePoints = function* (state) {
+		const rorschach = function* (state) {
 			let currX = getRand(state.sizeX);
 			let currY = getRand(state.sizeY);
 			// yield up to four points on each iteration
@@ -44,6 +45,32 @@
 					state.symX = Math.floor(currX % 2) == 1;
 				}
 			}
+		};
+
+		const sinus = function* (state) {
+			let currX = getRand(state.sizeX);
+			let currY = getRand(state.sizeY);
+			const amplitude = state.sizeY / state.frameCount;
+			const zeroX = currX;
+			const zeroY = currY;
+			const incX = (state.sizeX / state.pointCount);
+			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
+				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
+				currX += incX;
+				currY = (amplitude * Math.sin(currX - zeroX)) + zeroY;
+			}
+		};
+
+		const SourceLookup = [["rorschach", rorschach], ["sinus", sinus]];
+
+		const getPointSource = ({ pointSource }) => {
+			const foundSource = SourceLookup.filter(x => x[0] === pointSource).map(x => x[1]).shift();
+			return (foundSource) ? foundSource : rorschach;
+		};
+
+
+		const generatePoints = function* (state) {
+			yield* getPointSource(state)(state);
 		};
 
 		const drawDot = ({x, y, id, color}) => {
@@ -81,7 +108,7 @@
 		};
 
 		const buildParms = new URLSearchParams(window.location.search);
-		const requestable = ['displayMode', 'pointCount', 'delay', 'frameCount', 'spread'];
+		const requestable = ['displayMode', 'pointCount', 'delay', 'frameCount', 'spread', 'pointSource'];
 
 		const getParam = (attrib) => {
 			const requested = buildParms.get(attrib);
