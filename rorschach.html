@@ -48,8 +48,42 @@
 		};
 
 		const sinus = function* (state) {
-			let currX = getRand(state.sizeX);
+			let currX = getRand(state.sizeX / 2);
 			let currY = getRand(state.sizeY);
+			const nearY = Math.min((state.sizeY - currY), currY);
+			const amplitude = nearY / 2;
+			const zeroX = currX;
+			const zeroY = currY;
+			const incX = ((state.sizeX - zeroX) / Number(state.pointCount));
+			let theta = 0;
+			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
+				currY = (amplitude * Math.sin(theta)) + zeroY;
+				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
+				currX += incX;
+				theta += (incX / 60);
+			}
+		};
+
+		const tangent = function* (state) {
+			let currX = getRand(state.sizeX / 2);
+			let currY = getRand(state.sizeY);
+			const amplitude = (state.sizeX - currX) / 60;
+			const zeroX = currX;
+			const zeroY = currY;
+			const incX = ((state.sizeX - zeroX) / Number(state.pointCount));
+			let theta = 0;
+			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
+				currY = (amplitude * Math.tan(theta)) + zeroY;
+				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
+				currX += incX;
+				theta += (incX / 60);
+			}
+		};
+
+		const sawtooth = function* (state) {
+			let currX = getRand(state.sizeX / 2);
+			let currY = getRand(state.sizeY);
+			let diff = 0;
 			const nearY = Math.min((state.sizeY - currY), currY);
 			const amplitude = nearY / 2;
 			const zeroX = currX;
@@ -58,11 +92,32 @@
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
-				currY = (amplitude * Math.sin(currX - zeroX)) + zeroY;
+				diff = currX - zeroX;
+				currY = (amplitude * (diff - Math.floor(diff))) + zeroY;
 			}
 		};
 
-		const SourceLookup = [["rorschach", rorschach], ["sinus", sinus]];
+		const fourier = (x, n) => (4 * Math.sin(n * x)) / (Math.PI * n);
+
+		const square = function* (state) {
+			let currX = getRand(state.sizeX / 2);
+			let currY = getRand(state.sizeY);
+			const nearY = Math.min((state.sizeY - currY), currY);
+			const amplitude = nearY / 2;
+			const zeroY = currY;
+			const incX = ((state.sizeX - currX) / Number(state.pointCount));
+			let theta = 0;
+			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
+				let norm = [1, 3, 5, 7, 9, 11].reduce((acc, curr) => acc + fourier(theta, curr), 0);
+				currY = (amplitude * norm) + zeroY;
+				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
+				currX += incX;
+				theta += (incX / 60);
+			}
+		};
+
+		const SourceLookup = [["rorschach", rorschach], ["sinus", sinus], ["tangent", tangent],
+			 ["sawtooth", sawtooth], ["square", square]];
 
 		const getPointSource = ({ pointSource }) => {
 			const foundSource = SourceLookup.filter(x => x[0] === pointSource).map(x => x[1]).shift();
