@@ -54,7 +54,7 @@
 			const amplitude = nearY / 2;
 			const zeroX = currX;
 			const zeroY = currY;
-			const incX = ((state.sizeX - zeroX) / state.pointCount);
+			const incX = ((state.sizeX - zeroX) / Number(state.pointCount));
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
@@ -87,7 +87,8 @@
 		};
 
 		// continguous blocks of code points that have a bunch of emojis to choose from
-		const EmojiBox = [[0x1F600, 0x1F6BF], [0x1F300, 0x1F53D], [0x1F910, 0x1F99F]];
+		const EmojiBox = [[0x2600, 0x26FF], [0x2700, 0x27BF], [0x1F600, 0x1F6D5],
+			 [0x1F300, 0x1F53D], [0x1F700, 0x1F773], [0x1F900, 0x1F9FF]];
 
 		const getEmojiCodePoint = () => {
 			const [min, max] = EmojiBox[getRand(EmojiBox.length)];
@@ -140,8 +141,8 @@
 		};
 
 		const loadNew = () => {
-			const delay = getParam('delay');
-			const frameCount = getParam('frameCount')
+			const delay = Number(getParam('delay'));
+			const frameCount = Number(getParam('frameCount'));
 			const frameDelay = delay / frameCount;
 			const svgTag = document.getElementsByTagName("svg")[0];
 			for (let currFrame = 0; currFrame < frameCount; currFrame++) {
