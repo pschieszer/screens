@@ -80,21 +80,20 @@
 			return result;
 		};
 
-		const setParam = (buildParms, attrib, state) => {
-			const requested = buildParms.get(attrib);
-			state[attrib] = (requested) ? requested : defaultState[attrib];
-		};
-
+		const buildParms = new URLSearchParams(window.location.search);
 		const requestable = ['displayMode', 'pointCount', 'delay', 'frameCount', 'spread'];
+
+		const getParam = (attrib) => {
+			const requested = buildParms.get(attrib);
+			return (requested) ? requested : defaultState[attrib];
+		}
 
 		const getState = () => {
 			const result = JSON.parse(JSON.stringify(defaultState));
 			result.pointAttr.color = getRand(360);
 			result.sizeX = window.innerWidth;
 			result.sizeY = window.innerHeight;
-			const buildParms = new URLSearchParams(window.location.search);
-			requestable.forEach(x => setParam(buildParms, x, result));
-
+			requestable.forEach(x => result[x] = getParam(x));
 			return result;
 		};
 
@@ -113,16 +112,18 @@
 		};
 
 		const loadNew = () => {
-			const frameDelay = defaultState.delay / defaultState.frameCount;
+			const delay = getParam('delay');
+			const frameCount = getParam('frameCount')
+			const frameDelay = delay / frameCount;
 			const svgTag = document.getElementsByTagName("svg")[0];
-			for (let currFrame = 0; currFrame < defaultState.frameCount; currFrame++) {
+			for (let currFrame = 0; currFrame < frameCount; currFrame++) {
 				let currG = buildSvgTag();
 				let currDelay = frameDelay * (currFrame + 1);
 				window.setTimeout(x => svgTag.appendChild(currG), currDelay);
-				window.setTimeout(x => svgTag.removeChild(currG), (currDelay + defaultState.delay));
+				window.setTimeout(x => svgTag.removeChild(currG), (currDelay + delay));
 			}
 			// fix the viewport and viewbox
-			window.setTimeout(loadNew, defaultState.delay);
+			window.setTimeout(loadNew, delay);
 		};
 
 		const viewHeight = (window.innerHeight * .98);
