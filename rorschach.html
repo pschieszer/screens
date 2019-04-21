@@ -116,8 +116,12 @@
 			}
 		};
 
+		const randomSource = function* (state) {
+			yield* SourceLookup[getRand(SourceLookup.length)][1](state);
+		};
+
 		const SourceLookup = [["rorschach", rorschach], ["sinus", sinus], ["tangent", tangent],
-			 ["sawtooth", sawtooth], ["square", square]];
+			 ["sawtooth", sawtooth], ["square", square], ["random", randomSource]];
 
 		const getPointSource = ({ pointSource }) => {
 			const foundSource = SourceLookup.filter(x => x[0] === pointSource).map(x => x[1]).shift();
