@@ -72,18 +72,20 @@
 		};
 
 		const tangent = function* (state) {
-			let currX = getRand(state.sizeX / 2);
+			let currX = getRand(state.sizeX);
 			let currY = getRand(state.sizeY);
 			const amplitude = (state.sizeX - currX) / 60;
+			const farX = Math.max((state.sizeX - currX), currX);
+			const sign = (farX === currX) ? -1 : 1;
 			const zeroX = currX;
 			const zeroY = currY;
-			const incX = ((state.sizeX - zeroX) / Number(state.pointCount));
+			const incX = sign * farX / Number(state.pointCount);
 			let theta = 0;
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
 				currY = (amplitude * Math.tan(theta)) + zeroY;
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
-				theta += (incX / 60);
+				theta += (sign * incX / 60);
 			}
 		};
 
