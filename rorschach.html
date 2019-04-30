@@ -23,6 +23,8 @@
 			return ({x: (radius * Math.cos(theta)), y: (radius * Math.sin(theta))});
 		};
 
+		const isOdd = (value, whenOdd = true, whenEven = false) => Math.floor(value % 2) == 1 ? whenOdd : whenEven;
+
 		const rorschach = function* (state) {
 			let currX = getRand(state.sizeX);
 			let currY = getRand(state.sizeY);
@@ -41,8 +43,8 @@
 				if (pntNdx % 17 == 3) {
 					// let the symmetry settings randomly change every 17 iterations
 					//  because it increases the randomness of the output
-					state.symY = Math.floor(currY % 2) == 1;
-					state.symX = Math.floor(currX % 2) == 1;
+					state.symY = isOdd(currY);
+					state.symX = isOdd(currX);
 				}
 			}
 		};
@@ -55,11 +57,13 @@
 			const amplitude = nearY / 2;
 			const sign = (farX === zeroX) ? -1 : 1;
 			const incX = sign * farX / Number(state.pointCount);
+			const trig = isOdd(zeroX, Math.sin, Math.cos);
+			const freq = isOdd(zeroY, 30, 60);
 			let theta = 0;
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
 				yield ({
 					x: zeroX + theta,
-					y: (amplitude * Math.sin(sign * theta / 60)) + zeroY,
+					y: (amplitude * trig(sign * theta / freq)) + zeroY,
 					id: `pnt${pntNdx}`,
 					 ...state.pointAttr
 				});
