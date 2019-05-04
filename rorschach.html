@@ -26,8 +26,8 @@
 		const isOdd = (value, whenOdd = true, whenEven = false) => Math.floor(value % 2) == 1 ? whenOdd : whenEven;
 
 		const rorschach = function* (state) {
-			let currX = getRand(state.sizeX);
-			let currY = getRand(state.sizeY);
+			let currX = state.startX;
+			let currY = state.startY;
 			// yield up to four points on each iteration
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
@@ -50,8 +50,8 @@
 		};
 
 		const sinus = function* (state) {
-			const zeroX = getRand(state.sizeX);
-			const zeroY = getRand(state.sizeY);
+			const zeroX = state.startX;
+			const zeroY = state.startY;
 			const nearY = Math.min((state.sizeY - zeroY), zeroY);
 			const farX = Math.max((state.sizeX - zeroX), zeroX);
 			const amplitude = nearY / 2;
@@ -72,8 +72,8 @@
 		};
 
 		const tangent = function* (state) {
-			let currX = getRand(state.sizeX);
-			let currY = getRand(state.sizeY);
+			let currX = state.startX;
+			let currY = state.startY;
 			const amplitude = (state.sizeX - currX) / 60;
 			const farX = Math.max((state.sizeX - currX), currX);
 			const sign = (farX === currX) ? -1 : 1;
@@ -90,8 +90,8 @@
 		};
 
 		const sawtooth = function* (state) {
-			let currX = getRand(state.sizeX / 2);
-			let currY = getRand(state.sizeY);
+			let currX = state.startX;
+			let currY = state.startY;
 			let diff = 0;
 			const nearY = Math.min((state.sizeY - currY), currY);
 			const amplitude = nearY / 2;
@@ -109,8 +109,8 @@
 		const fourier = (x, n) => (4 * Math.sin(n * x)) / (Math.PI * n);
 
 		const square = function* (state) {
-			let currX = getRand(state.sizeX);
-			let currY = getRand(state.sizeY);
+			let currX = state.startX;
+			let currY = state.startY;
 			const nearY = Math.min((state.sizeY - currY), currY);
 			const farX = Math.max((state.sizeX - currX), currX);
 			const sign = (farX === currX) ? -1 : 1;
@@ -189,7 +189,6 @@
 
 		const getState = () => {
 			const result = JSON.parse(JSON.stringify(defaultState));
-			result.pointAttr.color = getRand(360);
 			result.sizeX = window.innerWidth;
 			result.sizeY = window.innerHeight;
 			requestable.forEach(x => result[x] = getParam(x));
@@ -203,9 +202,18 @@
 			return (foundMode) ? foundMode : drawDot;
 		};
 
+		const loadStarts = (state, { x, y, color }) => {
+			state.startX = (x) ? x : getRand(state.sizeX);
+			state.startY = (y) ? y : getRand(state.sizeY);
+			state.pointAttr.color = (color) ? color : getRand(360);
+			return state;
+		};
+
+		const loadRandomStarts = state => loadStarts(state, { x: undefined, y: undefined, color: undefined });
+
 		const buildSvgTag = () => {
 			const result = document.createElementNS("http://www.w3.org/2000/svg", "g");
-			const currState = getState();
+			const currState = loadRandomStarts(getState());
 			[...generatePoints(currState)].map(getGenerator(currState)).forEach(x => result.appendChild(x));
 			return result;
 		};
