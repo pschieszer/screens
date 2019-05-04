@@ -11,6 +11,8 @@ I have long been a fan of [JWZ](https://www.jwz.org/), who developed the [xscree
 - "delay": how many milliseconds for all frames
 - "frameCount": how many frames per delay, so a new frame every (delay / frameCount) milliseconds
 - "spread": rorschach point source will group dots within this many pixels
+- "height": height in pixels of resulting image (default is current window height)
+- "width": width in pixels of resulting image (default is current window width)
 - "pointSource"
   - "[rorschach](https://pschieszer.github.io/screens/rorschach.html?pointCount=820&frameCount=5&delay=7500&spread=45)": classic rorschach pattern mode, with pixel symmetry changing randomly for more organic look. Make spread lower like 35 for tight groupings or greater than 85 for loose.
   - "[tangent](https://pschieszer.github.io/screens/rorschach.html?pointSource=tangent&pointCount=820&frameCount=5&delay=7500)": graph of tangent curves
