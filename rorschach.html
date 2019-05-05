@@ -120,8 +120,9 @@
 			const zeroY = currY;
 			const incX = sign * farX / Number(state.pointCount);
 			let theta = 0;
+			const coefficients = [1, 3, 5, 7, 9, 11];
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
-				let norm = [1, 3, 5, 7, 9, 11].reduce((acc, curr) => acc + fourier(theta, curr), 0);
+				let norm = coefficients.reduce((acc, curr) => acc + fourier(theta, curr), 0);
 				currY = (amplitude * norm) + zeroY;
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
