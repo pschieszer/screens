@@ -58,7 +58,7 @@
 			const sign = (farX === zeroX) ? -1 : 1;
 			const incX = sign * farX / Number(state.pointCount);
 			const trig = isOdd(zeroX, Math.sin, Math.cos);
-			const freq = isOdd(zeroY, 30, 60);
+			const freq = Math.sqrt(farX);
 			let theta = 0;
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
 				yield ({
@@ -77,6 +77,7 @@
 			const amplitude = (state.sizeX - currX) / 60;
 			const farX = Math.max((state.sizeX - currX), currX);
 			const sign = (farX === currX) ? -1 : 1;
+			const freq = Math.sqrt(farX);
 			const zeroX = currX;
 			const zeroY = currY;
 			const incX = sign * farX / Number(state.pointCount);
@@ -85,7 +86,7 @@
 				currY = (amplitude * Math.tan(theta)) + zeroY;
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
-				theta += (sign * incX / 60);
+				theta += (sign * incX / freq);
 			}
 		};
 
@@ -114,6 +115,7 @@
 			const nearY = Math.min((state.sizeY - currY), currY);
 			const farX = Math.max((state.sizeX - currX), currX);
 			const sign = (farX === currX) ? -1 : 1;
+			const freq = Math.sqrt(farX);
 			const amplitude = nearY / 2;
 			const zeroY = currY;
 			const incX = sign * farX / Number(state.pointCount);
@@ -123,7 +125,7 @@
 				currY = (amplitude * norm) + zeroY;
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
-				theta += (sign * incX / 60);
+				theta += (sign * incX / freq);
 			}
 		};
 
@@ -201,7 +203,7 @@
 			const result = JSON.parse(JSON.stringify(defaultState));
 			result.sizeX = getWidth();
 			result.sizeY = getHeight();
-			requestable.forEach(x => result[x] = getParam(x));
+			requestable.forEach(x => { let param = getParam(x); if (param) result[x] = param; });
 			return result;
 		};
 
