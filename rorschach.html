@@ -15,6 +15,8 @@
 			pointSource: "rorschach"
 		};
 
+		let pointHistory = [];
+
 		const getRand = (x) => Math.floor(Math.random() * x);
 
 		const getOffset = (state) => {
@@ -49,6 +51,8 @@
 			}
 		};
 
+		const calcFrequency = (distance) => Math.sqrt(distance * .6);
+
 		const sinus = function* (state) {
 			const zeroX = state.startX;
 			const zeroY = state.startY;
@@ -58,7 +62,7 @@
 			const sign = (farX === zeroX) ? -1 : 1;
 			const incX = sign * farX / Number(state.pointCount);
 			const trig = isOdd(zeroX, Math.sin, Math.cos);
-			const freq = Math.sqrt(farX);
+			const freq = calcFrequency(farX);
 			let theta = 0;
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
 				yield ({
@@ -77,7 +81,7 @@
 			const amplitude = (state.sizeX - currX) / 60;
 			const farX = Math.max((state.sizeX - currX), currX);
 			const sign = (farX === currX) ? -1 : 1;
-			const freq = Math.sqrt(farX);
+			const freq = calcFrequency(farX);
 			const zeroX = currX;
 			const zeroY = currY;
 			const incX = sign * farX / Number(state.pointCount);
@@ -115,7 +119,7 @@
 			const nearY = Math.min((state.sizeY - currY), currY);
 			const farX = Math.max((state.sizeX - currX), currX);
 			const sign = (farX === currX) ? -1 : 1;
-			const freq = Math.sqrt(farX);
+			const freq = calcFrequency(farX);
 			const amplitude = nearY / 2;
 			const zeroY = currY;
 			const incX = sign * farX / Number(state.pointCount);
@@ -188,17 +192,16 @@
 		const getParam = (attrib) => {
 			const requested = buildParms.get(attrib);
 			return (requested) ? requested : defaultState[attrib];
-		}
+		};
 
-		const getHeight = () => {
-			const reqHeight = getParam('height');
-			return (reqHeight) ? Number(reqHeight) : window.innerHeight * .98;
-		}
+		const getNumWithDefault = (param, def) => {
+			const found = getParam(param);
+			return (found) ? Number(found) : def;
+		};
 
-		const getWidth = () => {
-			const reqWidth = getParam('width');
-			return (reqWidth) ? Number(reqWidth) : window.innerWidth * .98;
-		}
+		const getHeight = () => getNumWithDefault('height', window.innerHeight * .98);
+
+		const getWidth = () => getNumWithDefault('width', window.innerWidth * .98);
 
 		const getState = () => {
 			const result = JSON.parse(JSON.stringify(defaultState));
@@ -215,25 +218,44 @@
 			return (foundMode) ? foundMode : drawDot;
 		};
 
-		const loadStarts = (state, { x, y, color }) => {
+		const loadStarts = (state, { x, y, color, displayMode, pointSource }) => {
 			state.startX = (x) ? x : getRand(state.sizeX);
 			state.startY = (y) ? y : getRand(state.sizeY);
 			state.pointAttr.color = (color) ? color : getRand(360);
+			state.displayMode = (displayMode) ? displayMode : state.displayMode;
+			state.pointSource = (pointSource) ? pointSource : state.pointSource;
 			return state;
 		};
 
-		const loadRandomStarts = state => loadStarts(state, { x: undefined, y: undefined, color: undefined });
+		const loadRandomStarts = state =>
+			loadStarts(state,
+				{ x: undefined, y: undefined, color: undefined, displayMode: undefined, pointSource: undefined });
+
+		const recordHistory = (state) => {
+			const event = {
+				color: state.pointAttr.color,
+				x: state.startX,
+				y: state.startY,
+				displayMode: state.displayMode,
+				pointSource: state.pointSource
+			};
+			// only keep the most recent frames
+			while (pointHistory.length > 300) pointHistory.shift();
+			// add new
+			pointHistory.push(event);
+		};
 
 		const buildSvgTag = () => {
 			const result = document.createElementNS("http://www.w3.org/2000/svg", "g");
 			const currState = loadRandomStarts(getState());
+			recordHistory(currState);
 			[...generatePoints(currState)].map(getGenerator(currState)).forEach(x => result.appendChild(x));
 			return result;
 		};
 
 		const loadNew = () => {
-			const delay = Number(getParam('delay'));
-			const frameCount = Number(getParam('frameCount'));
+			const delay = getNumWithDefault('delay');
+			const frameCount = getNumWithDefault('frameCount');
 			const frameDelay = delay / frameCount;
 			const svgTag = document.getElementsByTagName("svg")[0];
 			for (let currFrame = 0; currFrame < frameCount; currFrame++) {
