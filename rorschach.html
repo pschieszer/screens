@@ -99,15 +99,15 @@
 			let currY = state.startY;
 			let diff = 0;
 			const nearY = Math.min((state.sizeY - currY), currY);
-			const amplitude = nearY / 2;
+			const amplitude = nearY;
 			const zeroX = currX;
 			const zeroY = currY;
-			const incX = ((state.sizeX - zeroX) / Number(state.pointCount));
+			const incX = (state.sizeX - zeroX) / nearY;
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
-				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
 				diff = currX - zeroX;
 				currY = (amplitude * (diff - Math.floor(diff))) + zeroY;
+				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 			}
 		};
 
@@ -134,12 +134,73 @@
 			}
 		};
 
+		const hilbert_map = [
+			{ currentState: 'a', inX: 0, inY: 0, outBit: 0, nextState: 'd'},
+			{ currentState: 'a', inX: 0, inY: 1, outBit: 1, nextState: 'a'},
+			{ currentState: 'a', inX: 1, inY: 0, outBit: 3, nextState: 'b'},
+			{ currentState: 'a', inX: 1, inY: 1, outBit: 2, nextState: 'a'},
+			{ currentState: 'b', inX: 0, inY: 0, outBit: 2, nextState: 'b'},
+			{ currentState: 'b', inX: 0, inY: 1, outBit: 1, nextState: 'b'},
+			{ currentState: 'b', inX: 1, inY: 0, outBit: 3, nextState: 'a'},
+			{ currentState: 'b', inX: 1, inY: 1, outBit: 0, nextState: 'c'},
+			{ currentState: 'c', inX: 0, inY: 0, outBit: 2, nextState: 'c'},
+			{ currentState: 'c', inX: 0, inY: 1, outBit: 3, nextState: 'd'},
+			{ currentState: 'c', inX: 1, inY: 0, outBit: 1, nextState: 'c'},
+			{ currentState: 'c', inX: 1, inY: 1, outBit: 0, nextState: 'b'},
+			{ currentState: 'd', inX: 0, inY: 0, outBit: 0, nextState: 'a'},
+			{ currentState: 'd', inX: 0, inY: 1, outBit: 3, nextState: 'c'},
+			{ currentState: 'd', inX: 1, inY: 0, outBit: 1, nextState: 'd'},
+			{ currentState: 'd', inX: 1, inY: 1, outBit: 2, nextState: 'd'}
+		];
+
+		const mapFromHilbert = (num) => {
+			const order = 30;
+			let currState = 'a';
+			let currNum = num;
+			let result = { x: 0, y: 0 };
+			// running the mapTo algorithm "backwards"
+			for (let currOrder = order; currOrder > -1; currOrder -= 2) {
+				result.x <<= 1;
+				result.y <<= 1;
+				currNum = (num & (3 << currOrder)) >> currOrder;
+				var currEnt = hilbert_map.filter(x => x.currentState == currState && x.outBit == currNum).shift();
+				currState = currEnt.nextState;
+				result.x |= currEnt.inX;
+				result.y |= currEnt.inY;
+			};
+			return result;
+		};
+
+		const normalizeHilbert = (pntNdx, xOff, xSign, yOff, ySign, spread) => {
+			let result = mapFromHilbert(pntNdx);
+			return { x: xOff + (xSign * result.x * spread), y: yOff + (ySign * result.y * spread) };
+		};
+
+		const hilbert = function* (state) {
+			// change default spread
+			if (!buildParms.get('spread')) state.spread = 5;
+			const farX = Math.max((state.sizeX - state.startX), state.startX);
+			const xSign = (farX === state.startX) ? -1 : 1;
+			const farY = Math.max((state.sizeY - state.startY), state.startY);
+			const ySign = (farY === state.startY) ? -1 : 1;
+			let currColor = state.pointAttr.color;
+
+			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
+				yield ({
+					...normalizeHilbert(pntNdx, state.startX, xSign, state.startY, ySign, state.spread),
+					id: `pnt${pntNdx}`,
+					color: currColor});
+				currColor = (currColor + 1) % 360;
+			}
+		};
+
+
 		const randomSource = function* (state) {
 			yield* SourceLookup[getRand(SourceLookup.length)][1](state);
 		};
 
 		const SourceLookup = [["rorschach", rorschach], ["sinus", sinus], ["tangent", tangent],
-			 ["sawtooth", sawtooth], ["square", square], ["random", randomSource]];
+			 ["sawtooth", sawtooth], ["square", square], ["hilbert", hilbert], ["random", randomSource]];
 
 		const getPointSource = ({ pointSource }) => {
 			const foundSource = SourceLookup.filter(x => x[0] === pointSource).map(x => x[1]).shift();
@@ -186,6 +247,35 @@
 			return result;
 		};
 
+		const buildPath = (currId, currD, color) => {
+			const result = document.createElementNS("http://www.w3.org/2000/svg", "path");
+			result.setAttribute("id", currId);
+			result.setAttribute("d", currD);
+			result.setAttribute("class", "line");
+			const currCol = `hsl(${color} 100% 50%)`;
+			result.setAttribute("fill", "none");
+			result.setAttribute("stroke", currCol);
+			result.setAttribute("stroke-width", "2");
+			result.setAttribute("stroke-linecap", "round");
+			return result;
+		};
+
+		const buildMat = (x, y) => `matrix(.3 0 0 .3 ${x} ${y})`;
+
+		const drawDude = ({x, y, id, color}) => {
+			const result = document.createElementNS("http://www.w3.org/2000/svg", "g");
+			const allElems = [ ["arms", "M 36 107 L 87.5 123 L 139 107"],
+							   ["legs", "M 47 216 L 87.5 156 L 128 216"],
+							   ["torso", "M 87.5 156 v -63"],
+							   ["head", "M 125.5 58 A 37 34 0 1 1 51 58 A 37 34 0 1 1 125.5 58 z"],
+							   ["leftEye", "M 85  51 A 6 6 0 1 1 73 51 A 6 6 0 1 1 85  51 z"],
+							   ["rightEye", "M 104 51 A 6 6 0 1 1 92 51 A 6 6 0 1 1 104 51 z"],
+							   ["smile", "M 109.5 69 A 29 34 0 0 1 69.5 70.5"] ];
+			allElems.map(e => buildPath(e[0], e[1], color)).forEach(e => result.appendChild(e));
+			result.setAttribute('transform', buildMat(x, y));
+			return result;
+		}
+
 		const buildParms = new URLSearchParams(window.location.search);
 		const requestable = ['displayMode', 'pointCount', 'delay', 'frameCount', 'spread', 'pointSource', 'height', 'width'];
 
@@ -211,7 +301,7 @@
 			return result;
 		};
 
-		const GeneratorLookup = [["dots", drawDot], ["emojis", drawEmoji]];
+		const GeneratorLookup = [["dots", drawDot], ["emojis", drawEmoji], ["dude", drawDude]];
 
 		const getGenerator = ({ displayMode }) => {
 			const foundMode = GeneratorLookup.filter(x => x[0] === displayMode).map(x => x[1]).shift();
