@@ -99,15 +99,15 @@
 			let currY = state.startY;
 			let diff = 0;
 			const nearY = Math.min((state.sizeY - currY), currY);
-			const amplitude = nearY / 2;
+			const amplitude = nearY;
 			const zeroX = currX;
 			const zeroY = currY;
-			const incX = ((state.sizeX - zeroX) / Number(state.pointCount));
+			const incX = (state.sizeX - zeroX) / nearY;
 			for (let pntNdx = 0; pntNdx < state.pointCount; pntNdx++) {
-				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 				currX += incX;
 				diff = currX - zeroX;
 				currY = (amplitude * (diff - Math.floor(diff))) + zeroY;
+				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 			}
 		};
 
