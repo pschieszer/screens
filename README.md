@@ -16,6 +16,7 @@ I have long been a fan of [JWZ](https://www.jwz.org/), who developed the [xscree
 - "width": width in pixels of resulting image (default is current window width)
 - "pointSource"
   - "[rorschach](https://pschieszer.github.io/screens/rorschach.html?pointCount=820&frameCount=5&delay=7500&spread=45)": classic rorschach pattern mode, with pixel symmetry changing randomly for more organic look. Make spread lower like 35 for tight groupings or greater than 85 for loose.
+  - "[hilbert](https://pschieszer.github.io/screens/rorschach.html?pointSource=hilbert&pointCount=683&frameCount=5&delay=7500&spread=8)": colored hilbert curve fractal with points separated by spread pixels (default 5), pretty, would be better animated, pointCount values with interesting binary representations look cool in this source
   - "[tangent](https://pschieszer.github.io/screens/rorschach.html?pointSource=tangent&pointCount=820&frameCount=5&delay=7500)": graph of tangent curves
   - "[sinus](https://pschieszer.github.io/screens/rorschach.html?pointSource=sinus&pointCount=820&frameCount=5&delay=7500)": graph of sine waves
   - "[square](https://pschieszer.github.io/screens/rorschach.html?pointSource=square&pointCount=820&frameCount=5&delay=7500)": graph of a fifth order Fourier series approximation of a square wave. Currently my favorite because the math was hard.
