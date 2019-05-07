@@ -5,8 +5,9 @@ I have long been a fan of [JWZ](https://www.jwz.org/), who developed the [xscree
 ## Query string options
 
 - "displayMode": "dots" is default
-  - "[emojis](https://pschieszer.github.io/screens/rorschach.html?displayMode=emojis&pointCount=80&frameCount=5&delay=7500)": I love the randomness of the emoji mode, the accidental juxtaposition of the images. If it gets too cluttered it's too much to take in. Also the geometric modes don't flatter the emoji mode, it feels better with rorscach. Sometimes looks like if Tumblr and reddit had a baby.
-  - "[dots](https://pschieszer.github.io/screens/rorschach.html?pointCount=80&frameCount=5&delay=7500)": classic mode, works well with higher pointCount values and geometric curves, but kind of boring
+  - "[emojis](https://pschieszer.github.io/screens/rorschach.html?displayMode=emojis&pointCount=80&frameCount=5&delay=7500)": I love the randomness of the emoji mode, the accidental juxtaposition of the images. If it gets too cluttered it's too much to take in. Also the geometric point sources don't flatter the emoji mode, so the emojis look better with rorscach. Sometimes looks like if Tumblr and reddit had a baby.
+  - "[dots](https://pschieszer.github.io/screens/rorschach.html?pointCount=80&frameCount=5&delay=7500)": classic mode, works well with higher pointCount values and geometric point sources
+  - "[dude](https://pschieszer.github.io/screens/rorschach.html?displayMode=dude&pointCount=80&frameCount=5&delay=7500)": draws "the dude", a little stick figure guy. If the pointCount is greater than 200, browsers get slow and the screen is too cluttered. Works well with random mode.
 - "pointCount": how many dots you want per frame
 - "delay": how many milliseconds for all frames
 - "frameCount": how many frames per delay, so a new frame every (delay / frameCount) milliseconds
@@ -37,3 +38,5 @@ Once I got the base Rorshach logic working (x and y points, turned into dots, bl
 And I wasn't stuck with just dots. Emojis would be easy to produce too. So I added "display modes", where you could select emojis instead of dots. Emojis don't work as nicely as I would like. You have to set the point count lower or the screen is too cluttered, and some of the emojis don't look great on certain OSes.
 
 I added parameters to the query string. Some of the parameters work better in combination with one another. Play around with them to find a happy spot.
+
+Recently, the geometric point sources were updated to vary the frequency used. Additionally, the sawtooth mode was modified, continues to need work.

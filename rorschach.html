@@ -186,6 +186,35 @@
 			return result;
 		};
 
+		const buildPath = (currId, currD, color) => {
+			const result = document.createElementNS("http://www.w3.org/2000/svg", "path");
+			result.setAttribute("id", currId);
+			result.setAttribute("d", currD);
+			result.setAttribute("class", "line");
+			const currCol = `hsl(${color} 100% 50%)`;
+			result.setAttribute("fill", "none");
+			result.setAttribute("stroke", currCol);
+			result.setAttribute("stroke-width", "2");
+			result.setAttribute("stroke-linecap", "round");
+			return result;
+		};
+
+		const buildMat = (x, y) => `matrix(.3 0 0 .3 ${x} ${y})`;
+
+		const drawDude = ({x, y, id, color}) => {
+			const result = document.createElementNS("http://www.w3.org/2000/svg", "g");
+			const allElems = [ ["arms", "M 36 107 L 87.5 123 L 139 107"],
+							   ["legs", "M 47 216 L 87.5 156 L 128 216"],
+							   ["torso", "M 87.5 156 v -63"],
+							   ["head", "M 125.5 58 A 37 34 0 1 1 51 58 A 37 34 0 1 1 125.5 58 z"],
+							   ["leftEye", "M 85  51 A 6 6 0 1 1 73 51 A 6 6 0 1 1 85  51 z"],
+							   ["rightEye", "M 104 51 A 6 6 0 1 1 92 51 A 6 6 0 1 1 104 51 z"],
+							   ["smile", "M 109.5 69 A 29 34 0 0 1 69.5 70.5"] ];
+			allElems.map(e => buildPath(e[0], e[1], color)).forEach(e => result.appendChild(e));
+			result.setAttribute('transform', buildMat(x, y));
+			return result;
+		}
+
 		const buildParms = new URLSearchParams(window.location.search);
 		const requestable = ['displayMode', 'pointCount', 'delay', 'frameCount', 'spread', 'pointSource', 'height', 'width'];
 
@@ -211,7 +240,7 @@
 			return result;
 		};
 
-		const GeneratorLookup = [["dots", drawDot], ["emojis", drawEmoji]];
+		const GeneratorLookup = [["dots", drawDot], ["emojis", drawEmoji], ["dude", drawDude]];
 
 		const getGenerator = ({ displayMode }) => {
 			const foundMode = GeneratorLookup.filter(x => x[0] === displayMode).map(x => x[1]).shift();
