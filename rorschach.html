@@ -220,7 +220,7 @@
 				currVertex += (pntNdx % pointsPerSeg === 0) ? 1 : 0;
 				let nextVertex = (currVertex + 1) % vertexes.length;
 				let currSide = pntNdx % pointsPerSeg;
-				let nextSide = pointsPerSeg - currSide
+				let nextSide = pointsPerSeg - currSide;
 				let [currX, currY] = calcHexPoint(vertexes[currVertex], vertexes[nextVertex], currSide, nextSide, origin);
 				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
 			}
