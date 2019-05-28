@@ -194,11 +194,10 @@
 			}
 		};
 
-		const calcHexPoint = (currVertex, nextVertex, currSide, nextSide, origin) => {
-			const localX = (nextSide * currVertex[0] + currSide * nextVertex[0])/ (currSide + nextSide);
-			const localY = (nextSide * currVertex[1] + currSide * nextVertex[1])/ (currSide + nextSide);
-			return [origin[0] + localX, origin[1] + localY];
-		};
+		const calcHexPoint = (currVertex, nextVertex, currSide, nextSide, origin) => [
+			origin[0] + (nextSide * currVertex[0] + currSide * nextVertex[0]) / (currSide + nextSide),
+			origin[1] + (nextSide * currVertex[1] + currSide * nextVertex[1])/ (currSide + nextSide)
+		];
 
 		const hexagon = function* (state) {
 			const farX = Math.max((state.sizeX - state.startX), state.startX);
@@ -208,11 +207,11 @@
 			const pointsPerSeg = Math.floor(state.pointCount / 6);
 			const hexSize = pointsPerSeg * 6;
 			const area = farX * farY * .2;
-			const sideLength = Math.sqrt((2 / (3 * Math.sqrt(3))) * area);
-			const vertexes = [[-1 * sideLength, 0], [-(1/2) * sideLength, (Math.sqrt(3) / 2) * sideLength],
-				[(1/2) * sideLength, (Math.sqrt(3) / 2) * sideLength], [sideLength, 0],
-				[(1/2) * sideLength, -(Math.sqrt(3) / 2) * sideLength],
-				[-(1/2) * sideLength, -(Math.sqrt(3) / 2) * sideLength]];
+			const root3 = Math.sqrt(3);
+			const sideLength = Math.sqrt((2 / (3 * root3)) * area);
+			const vertexes = [[-1 * sideLength, 0], [-.5 * sideLength, .5 * root3 * sideLength],
+				[.5 * sideLength, .5 * root3 * sideLength], [sideLength, 0],
+				[.5 * sideLength, -.5 * root3 * sideLength], [-.5 * sideLength, -.5 * root3 * sideLength]];
 			// need to normalize around the "origin"
 			const origin = [state.startX + (xSign * (.5 * farX)), state.startY + (ySign * (.5 * farY))];
 			let currVertex = -1;
