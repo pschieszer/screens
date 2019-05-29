@@ -199,6 +199,14 @@
 			origin[1] + (nextSide * currVertex[1] + currSide * nextVertex[1])/ (currSide + nextSide)
 		];
 
+		const radiansPerDegree = Math.PI / 180;
+
+		const myRot = (point, deg) => {
+			let rad = Number(deg) * radiansPerDegree;
+			return [point[0] * Math.cos(rad) + point[1] * Math.sin(rad),
+				    point[0] * (-1 * Math.sin(rad)) + point[1] * Math.cos(rad)];
+		}
+
 		const hexagon = function* (state) {
 			const farX = Math.max((state.sizeX - state.startX), state.startX);
 			const xSign = (farX === state.startX) ? -1 : 1;
@@ -209,9 +217,11 @@
 			const area = farX * farY * .2;
 			const root3 = Math.sqrt(3);
 			const sideLength = Math.sqrt((2 / (3 * root3)) * area);
+			const rot = Math.floor(farX % 60);
+			// rotate the vertexes by random angle
 			const vertexes = [[-1 * sideLength, 0], [-.5 * sideLength, .5 * root3 * sideLength],
 				[.5 * sideLength, .5 * root3 * sideLength], [sideLength, 0],
-				[.5 * sideLength, -.5 * root3 * sideLength], [-.5 * sideLength, -.5 * root3 * sideLength]];
+				[.5 * sideLength, -.5 * root3 * sideLength], [-.5 * sideLength, -.5 * root3 * sideLength]].map(x => myRot(x, rot));
 			// need to normalize around the "origin"
 			const origin = [state.startX + (xSign * (.5 * farX)), state.startY + (ySign * (.5 * farY))];
 			let currVertex = -1;
