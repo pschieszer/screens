@@ -194,7 +194,7 @@
 			}
 		};
 
-		const calcHexPoint = (currVertex, nextVertex, currSide, nextSide, origin) => [
+		const calcLinePoint = (currVertex, nextVertex, currSide, nextSide, origin) => [
 			origin[0] + (nextSide * currVertex[0] + currSide * nextVertex[0]) / (currSide + nextSide),
 			origin[1] + (nextSide * currVertex[1] + currSide * nextVertex[1])/ (currSide + nextSide)
 		];
@@ -207,11 +207,27 @@
 				    point[0] * (-1 * Math.sin(rad)) + point[1] * Math.cos(rad)];
 		}
 
-		const hexagon = function* (state) {
+		const drawLines = function* (state, vertexes, pointsPerSeg, plySize) {
 			const farX = Math.max((state.sizeX - state.startX), state.startX);
 			const xSign = (farX === state.startX) ? -1 : 1;
 			const farY = Math.max((state.sizeY - state.startY), state.startY);
 			const ySign = (farY === state.startY) ? -1 : 1;
+			// need to normalize around the "origin"
+			const origin = [state.startX + (xSign * (.5 * farX)), state.startY + (ySign * (.5 * farY))];
+			let currVertex = -1;
+			for (let pntNdx = 0; pntNdx < plySize; pntNdx++) {
+				currVertex += (pntNdx % pointsPerSeg === 0) ? 1 : 0;
+				let nextVertex = (currVertex + 1) % vertexes.length;
+				let currSide = pntNdx % pointsPerSeg;
+				let nextSide = pointsPerSeg - currSide;
+				let [currX, currY] = calcLinePoint(vertexes[currVertex], vertexes[nextVertex], currSide, nextSide, origin);
+				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
+			}
+		};
+
+		const hexagon = function* (state) {
+			const farX = Math.max((state.sizeX - state.startX), state.startX);
+			const farY = Math.max((state.sizeY - state.startY), state.startY);
 			const pointsPerSeg = Math.floor(state.pointCount / 6);
 			const hexSize = pointsPerSeg * 6;
 			const area = farX * farY * .2;
@@ -222,17 +238,7 @@
 			const vertexes = [[-1 * sideLength, 0], [-.5 * sideLength, .5 * root3 * sideLength],
 				[.5 * sideLength, .5 * root3 * sideLength], [sideLength, 0],
 				[.5 * sideLength, -.5 * root3 * sideLength], [-.5 * sideLength, -.5 * root3 * sideLength]].map(x => myRot(x, rot));
-			// need to normalize around the "origin"
-			const origin = [state.startX + (xSign * (.5 * farX)), state.startY + (ySign * (.5 * farY))];
-			let currVertex = -1;
-			for (let pntNdx = 0; pntNdx < hexSize; pntNdx++) {
-				currVertex += (pntNdx % pointsPerSeg === 0) ? 1 : 0;
-				let nextVertex = (currVertex + 1) % vertexes.length;
-				let currSide = pntNdx % pointsPerSeg;
-				let nextSide = pointsPerSeg - currSide;
-				let [currX, currY] = calcHexPoint(vertexes[currVertex], vertexes[nextVertex], currSide, nextSide, origin);
-				yield ({x: currX, y: currY, id: `pnt${pntNdx}`, ...state.pointAttr});
-			}
+			yield* drawLines(state, vertexes, pointsPerSeg, hexSize);
 		};
 
 		const randomSource = function* (state) {
