@@ -207,7 +207,9 @@
 				    point[0] * (-1 * Math.sin(rad)) + point[1] * Math.cos(rad)];
 		}
 
-		const drawLines = function* (state, vertexes, pointsPerSeg, plySize) {
+		const drawLines = function* (state, vertexes) {
+			const pointsPerSeg = Math.floor(state.pointCount / vertexes.length);
+			const plySize = pointsPerSeg * vertexes.length;
 			const farX = Math.max((state.sizeX - state.startX), state.startX);
 			const xSign = (farX === state.startX) ? -1 : 1;
 			const farY = Math.max((state.sizeY - state.startY), state.startY);
@@ -228,8 +230,6 @@
 		const hexagon = function* (state) {
 			const farX = Math.max((state.sizeX - state.startX), state.startX);
 			const farY = Math.max((state.sizeY - state.startY), state.startY);
-			const pointsPerSeg = Math.floor(state.pointCount / 6);
-			const hexSize = pointsPerSeg * 6;
 			const area = farX * farY * .2;
 			const root3 = Math.sqrt(3);
 			const sideLength = Math.sqrt((2 / (3 * root3)) * area);
@@ -238,7 +238,21 @@
 			const vertexes = [[-1 * sideLength, 0], [-.5 * sideLength, .5 * root3 * sideLength],
 				[.5 * sideLength, .5 * root3 * sideLength], [sideLength, 0],
 				[.5 * sideLength, -.5 * root3 * sideLength], [-.5 * sideLength, -.5 * root3 * sideLength]].map(x => myRot(x, rot));
-			yield* drawLines(state, vertexes, pointsPerSeg, hexSize);
+			yield* drawLines(state, vertexes);
+		};
+
+		const StarX = [.25 * (Math.sqrt(5) - 1), .25 * (Math.sqrt(5) + 1)];
+		const StarY = [.25 * Math.sqrt(10 + (2 * Math.sqrt(5))), .25 * Math.sqrt(10 - (2 * Math.sqrt(5)))];
+
+		const fiveStar = function* (state) {
+			const farX = Math.max((state.sizeX - state.startX), state.startX);
+			const farY = Math.max((state.sizeY - state.startY), state.startY);
+			const sideLength = Math.min(farX, farY) * .4;
+			const rot = Math.floor(farX % 72);
+			const vertexes = [[sideLength, 0], [-1 * sideLength * StarX[1], -1 * sideLength * StarY[1]],
+				[sideLength * StarX[0], sideLength * StarY[0]], [sideLength * StarX[0], -1 * sideLength * StarY[0]],
+				[-1 * sideLength * StarX[1], sideLength * StarY[1]]].map(x => myRot(x, rot));
+			yield* drawLines(state, vertexes);
 		};
 
 		const randomSource = function* (state) {
@@ -246,7 +260,8 @@
 		};
 
 		const SourceLookup = [["rorschach", rorschach], ["sinus", sinus], ["tangent", tangent],
-			 ["sawtooth", sawtooth], ["square", square], ["hilbert", hilbert], ["hexagon", hexagon], ["random", randomSource]];
+			 ["sawtooth", sawtooth], ["square", square], ["hilbert", hilbert], ["hexagon", hexagon],
+			 ["5star", fiveStar], ["random", randomSource]];
 
 		const getPointSource = ({ pointSource }) => {
 			const foundSource = SourceLookup.filter(x => x[0] === pointSource).map(x => x[1]).shift();
