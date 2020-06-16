@@ -2,6 +2,8 @@
 
 I have long been a fan of [JWZ](https://www.jwz.org/), who developed the [xscreensaver](https://www.jwz.org/xscreensaver/) hacks. I had also recently been working with SVG in [another app](https://github.com/pschieszer/weatherCheck). I decided to see if I could implement one of the xscreensaver hacks as SVG. This is the result of that effort.
 
+Click on the image to save a screenshot (generated in browser -- that was fun to implement).
+
 ## Query string options
 
 - "displayMode": "dots" is default
