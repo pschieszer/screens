@@ -307,18 +307,28 @@ const drawDot = ({x, y, id, color}) => {
 	return result;
 };
 
+const getFromRange = (min, range) => getRand(range) + min;
+
+const selectYi = () => String.fromCodePoint(getFromRange(0xA000, 1165));
+
+const selectVai = () => String.fromCodePoint(getFromRange(0xA500, 300));
+
+const selectHangul = () => String.fromCodePoint(getFromRange(0xAC00, 11172));
+
+const selectCanadian = () => String.fromCodePoint(getFromRange(0x1400, 640));
+
 // continguous blocks of code points that have a bunch of emojis to choose from
 const EmojiBox = [[0x2600, 0x26FF], [0x2700, 0x27BF], [0x1F600, 0x1F6D5],
 	 [0x1F300, 0x1F53D], [0x1F700, 0x1F773], [0x1F900, 0x1F9FF]];
 
 const getEmojiCodePoint = () => {
 	const [min, max] = EmojiBox[getRand(EmojiBox.length)];
-	return getRand(max - min) + min;
+	return getFromRange(min, max - min);
 }
 
 const selectEmoji = () => String.fromCodePoint(getEmojiCodePoint());
 
-const drawEmoji = ({x, y, id, color}) => {
+const drawTextCell = (selector) => ({x, y, id, color}) => {
 	const result = document.createElementNS("http://www.w3.org/2000/svg", "text");
 	result.setAttributeNS(null, "x", x);
 	result.setAttributeNS(null, "y", y);
@@ -326,9 +336,19 @@ const drawEmoji = ({x, y, id, color}) => {
 	const currCol = `hsl(${color} 100% 50%)`;
 	result.setAttribute("fill", currCol);
 	result.setAttribute("stroke", currCol);
-	result.appendChild(document.createTextNode(selectEmoji()));
+	result.appendChild(document.createTextNode(selector()));
 	return result;
 };
+
+const drawEmoji = drawTextCell(selectEmoji);
+
+const drawYi = drawTextCell(selectYi);
+
+const drawVai = drawTextCell(selectVai);
+
+const drawHangul = drawTextCell(selectHangul);
+
+const drawCanadian = drawTextCell(selectCanadian);
 
 const buildPath = (currId, currD, color) => {
 	const result = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -384,7 +404,8 @@ const getState = () => {
 	return result;
 };
 
-const GeneratorLookup = [["dots", drawDot], ["emojis", drawEmoji], ["dude", drawDude]];
+const GeneratorLookup = [["dots", drawDot], ["emojis", drawEmoji], ["dude", drawDude],
+	["yi", drawYi], ["vai", drawVai], ["hangul", drawHangul], ["canadian", drawCanadian]];
 
 const getGenerator = ({ displayMode }) => {
 	const foundMode = GeneratorLookup.filter(x => x[0] === displayMode).map(x => x[1]).shift();
