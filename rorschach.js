@@ -285,11 +285,16 @@ const SourceLookup = [["rorschach", rorschach], ["sinus", sinus], ["tangent", ta
 	 ["sawtooth", sawtooth], ["square", square], ["hilbert", hilbert], ["hexagon", hexagon],
 	 ["5star", fiveStar], ["arch", arch], ["random", randomSource]];
 
-const getPointSource = ({ pointSource }) => {
-	const foundSource = SourceLookup.filter(x => x[0] === pointSource).map(x => x[1]).shift();
-	return (foundSource) ? foundSource : rorschach;
+const getPointSourceOptions = ({ pointSource }) => {
+	const allSources = pointSource.split(",").map(x => x.trim().toLowerCase());
+	const foundSource = SourceLookup.filter(x => allSources.indexOf(x[0]) > -1).map(x => x[1]);
+	return (foundSource) ? foundSource : [ rorschach ];
 };
 
+const getPointSource = (state) => {
+	const sources = getPointSourceOptions(state);
+	return sources[getRand(sources.length)];
+};
 
 const generatePoints = function* (state) {
 	yield* getPointSource(state)(state);
@@ -407,9 +412,15 @@ const getState = () => {
 const GeneratorLookup = [["dots", drawDot], ["emojis", drawEmoji], ["dude", drawDude],
 	["yi", drawYi], ["vai", drawVai], ["hangul", drawHangul], ["canadian", drawCanadian]];
 
-const getGenerator = ({ displayMode }) => {
-	const foundMode = GeneratorLookup.filter(x => x[0] === displayMode).map(x => x[1]).shift();
-	return (foundMode) ? foundMode : drawDot;
+const getGeneratorOptions = ({ displayMode }) => {
+	const allGenerators = displayMode.split(",").map(x => x.trim().toLowerCase());
+	const foundMode = GeneratorLookup.filter(x => allGenerators.indexOf(x[0]) > -1).map(x => x[1]);
+	return (foundMode) ? foundMode : [ drawDot ];
+};
+
+const getGenerator = (state) => {
+	const generators = getGeneratorOptions(state);
+	return generators[getRand(generators.length)];
 };
 
 const loadStarts = (state, { x, y, color, displayMode, pointSource }) => {

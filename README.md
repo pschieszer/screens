@@ -6,7 +6,7 @@ Click on the image to save a screenshot (generated in browser -- that was fun to
 
 ## Query string options
 
-- "displayMode": "dots" is default
+- "displayMode": comma-separated list of any of the following options, "dots" is default
   - "[emojis](https://pschieszer.github.io/screens/rorschach.html?displayMode=emojis&pointCount=80&frameCount=5&delay=7500)": I love the randomness of the emoji mode, the accidental juxtaposition of the images. If it gets too cluttered it's too much to take in. Also the geometric point sources don't flatter the emoji mode, so the emojis look better with rorscach. Sometimes looks like if Tumblr and reddit had a baby.
   - "[dots](https://pschieszer.github.io/screens/rorschach.html?pointCount=80&frameCount=5&delay=7500)": classic mode, works well with higher pointCount values and geometric point sources
   - "[dude](https://pschieszer.github.io/screens/rorschach.html?displayMode=dude&pointCount=80&frameCount=5&delay=7500)": draws "the dude", a little stick figure guy. If the pointCount is greater than 200, browsers get slow and the screen is too cluttered. Works well with random mode.
@@ -20,7 +20,7 @@ Click on the image to save a screenshot (generated in browser -- that was fun to
 - "spread": rorschach point source will group dots within this many pixels, hilbert will separate dots by this many
 - "height": height in pixels of resulting image (default is current window height)
 - "width": width in pixels of resulting image (default is current window width)
-- "pointSource"
+- "pointSource": comma-separated list of any of the following options, defaults to rorschach
   - "[rorschach](https://pschieszer.github.io/screens/rorschach.html?pointCount=820&frameCount=5&delay=7500&spread=45)": classic rorschach pattern mode, with pixel symmetry changing randomly for more organic look. Make spread lower like 35 for tight groupings or greater than 85 for loose.
   - "[hilbert](https://pschieszer.github.io/screens/rorschach.html?pointSource=hilbert&pointCount=683&frameCount=5&delay=7500&spread=8)": colored hilbert curve fractal with points separated by spread pixels (default 5), pretty, would be better animated, pointCount values with interesting binary representations look cool in this source. Of course, if you prefer squares, lower spread to 2 or 3 and use a power of 2 for pointCount.
   - "[hexagon](https://pschieszer.github.io/screens/rorschach.html?pointSource=hexagon&pointCount=360&frameCount=5&delay=7500)": Hexagons. First point source that implements a regular polygon, so I had to work out how to interpolate points between vertexes. Point count above 400 probably overkill. The resulting hexagon will have pointCount modulo 6 dots per side, evenly spread.
