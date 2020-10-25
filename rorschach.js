@@ -478,9 +478,18 @@ const grabScreenshot = svgTag => {
 	shotImage.onload = drawCanvas(shotImage, shotUrl);
 };
 
+const buildGroupAttributes = () => {
+	const result = {};
+	let currRot = getNumWithDefault('groupRotation', 0);
+	if (currRot) result["transform"] = `rotate(${getRand(currRot) - (currRot / 2)})`;
+	return result;
+};
+
 const buildSvgTag = () => {
 	const result = document.createElementNS("http://www.w3.org/2000/svg", "g");
 	const currState = loadRandomStarts(getState());
+	const groupAttr = buildGroupAttributes();
+	Object.keys(groupAttr).forEach(x => result.setAttribute(x, groupAttr[x]));
 	recordHistory(currState);
 	[...generatePoints(currState)].map(getGenerator(currState)).forEach(x => result.appendChild(x));
 	return result;
