@@ -18,6 +18,7 @@ Click on the image to save a screenshot (generated in browser -- that was fun to
 - "delay": how many milliseconds for all frames
 - "frameCount": how many frames per delay, so a new frame every (delay / frameCount) milliseconds
 - "spread": rorschach point source will group dots within this many pixels, hilbert will separate dots by this many
+- "[groupRotation](https://pschieszer.github.io/screens/rorschach.html?pointSource=sinus&pointCount=360&frameCount=3&groupRotation=10)": if not 0, will rotate each frame a random number of degrees up to this value. So if you chose 10, a frame would be tilted somewhere in a 10 degree arc from level.
 - "height": height in pixels of resulting image (default is current window height)
 - "width": width in pixels of resulting image (default is current window width)
 - "pointSource": comma-separated list of any of the following options, defaults to rorschach
