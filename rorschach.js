@@ -15,6 +15,8 @@ const defaultState = {
 
 let pointHistory = [];
 
+let viewBox = undefined;
+
 const getRand = (x) => Math.floor(Math.random() * x);
 
 const getOffset = (state) => {
@@ -507,6 +509,18 @@ const removeG = (svgTag, currG, frameCount) => x => {
 			svgTag.removeChild(gTags.shift());
 };
 
+const handleWheel = (svgTag) => (e) => {
+   e.preventDefault();
+   let w = viewBox.w;
+   let h = viewBox.h;
+   let dw = w * Math.sign(e.deltaY) * 0.05;
+   let dh = h * Math.sign(e.deltaY) * 0.05;
+   let dx = (dw * e.offsetX / getWidth()) || (e.deltaX);
+   let dy = (dh * e.offsetY / getHeight()) || (e.deltaX);
+   viewBox = { x: viewBox.x + dx, y: viewBox.y + dy, w: viewBox.w - dw, h: viewBox.h - dh };
+   svgTag.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
+};
+
 const loadNew = (svgTag) => {
 	const delay = getNumWithDefault('delay');
 	if (defaultState.isAnimating) {
@@ -527,7 +541,9 @@ const viewHeight = getHeight();
 const viewWidth = getWidth();
 const svgTag = getCurrentSvg();
 svgTag.setAttribute('viewbox', `0 0 ${viewWidth} ${viewHeight}`);
+viewBox = { x: 0, y: 0, w: viewWidth, h: viewHeight };
 svgTag.setAttribute('height', viewHeight);
 svgTag.setAttribute('width', viewWidth);
 svgTag.addEventListener('click', () => grabScreenshot(svgTag));
+svgTag.addEventListener('wheel', handleWheel(svgTag));
 loadNew(svgTag);
