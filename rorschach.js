@@ -333,7 +333,7 @@ const getEmojiCodePoint = () => {
 	return getFromRange(min, max - min);
 }
 
-const selectEmoji = () => String.fromCodePoint(getEmojiCodePoint());
+const selectEmoji = () => [getEmojiCodePoint(), 0x200d, getEmojiCodePoint(), 0xfe0f].map(x => String.fromCodePoint(x)).join("");
 
 const drawTextCell = (selector) => ({x, y, id, color}) => {
 	const result = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -454,19 +454,27 @@ const recordHistory = (state) => {
 
 const Url = window.URL || window.webkitURL || window;
 
-const drawCanvas = (shotImage, shotUrl) => () => {
+const saveFile = (parentUrl, dataUrl, fileName) => {
+	var currLink = document.createElement("a");
+	document.body.appendChild(currLink); // This line makes it work in Firefox.
+	currLink.setAttribute("href", dataUrl);
+	currLink.setAttribute("download", fileName);
+	currLink.click();
+	currLink.remove();
+	Url.revokeObjectURL(parentUrl);
+}
+
+const buildShotUrl = (shotImage) => {
 	let shotCanvas = document.createElement('canvas');
 	shotCanvas.width = viewWidth;
 	shotCanvas.height = viewHeight;
 	let shotContext = shotCanvas.getContext('2d');
 	shotContext.drawImage(shotImage, 0, 0);
-	var shotLink = document.createElement("a");
-	document.body.appendChild(shotLink); // This line makes it work in Firefox.
-	shotLink.setAttribute("href", shotCanvas.toDataURL());
-	shotLink.setAttribute("download", "rorschach_" + new Date().toISOString() + ".png");
-	shotLink.click();
-	shotLink.remove();
-	Url.revokeObjectURL(shotUrl);
+	return shotCanvas.toDataURL();
+}
+
+const buildShotCanvas = (shotImage, shotUrl) => () => {
+	saveFile(shotUrl, buildShotUrl(shotImage), "rorschach_" + new Date().toISOString() + ".png");
 	defaultState.isAnimating = true;
 };
 
@@ -477,7 +485,7 @@ const grabScreenshot = svgTag => {
 	let shotBlob = new Blob([tagClone.outerHTML], {type: "image/svg+xml;charset=utf-8"});
 	let shotUrl = URL.createObjectURL(shotBlob);
 	shotImage.src = shotUrl;
-	shotImage.onload = drawCanvas(shotImage, shotUrl);
+	shotImage.onload = buildShotCanvas(shotImage, shotUrl);
 };
 
 const buildGroupAttributes = () => {
