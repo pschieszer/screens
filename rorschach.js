@@ -10,7 +10,8 @@ const defaultState = {
 	frameCount: 6,
 	displayMode: "dots",
 	pointSource: "rorschach",
-	isAnimating: true
+	isAnimating: true,
+	wakeLock: false
 };
 
 let pointHistory = [];
@@ -387,7 +388,7 @@ const drawDude = ({x, y, id, color}) => {
 }
 
 const buildParms = new URLSearchParams(window.location.search);
-const requestable = ['displayMode', 'pointCount', 'delay', 'frameCount', 'spread', 'pointSource', 'height', 'width'];
+const requestable = ['displayMode', 'pointCount', 'delay', 'frameCount', 'spread', 'pointSource', 'height', 'width', 'wakeLock'];
 
 const getParam = (attrib) => {
 	const requested = buildParms.get(attrib);
@@ -545,6 +546,28 @@ const loadNew = (svgTag) => {
 	window.setTimeout(() => loadNew(svgTag), delay);
 };
 
+let wakeLock = undefined;
+
+const handleVisibilityChange = async () => {
+	if (document.visibilityState === 'visible') {
+		checkWakeLock();
+	}
+};
+
+const wakeLockSuccess = (lock) => {
+	wakeLock = lock;
+	wakeLock.addEventListener('release', () => console.log(`wakeLock released: ${wakeLock.released}`));
+	document.addEventListener('visibilitychange', handleVisibilityChange);
+	console.log(`wakeLock is set`);
+};
+
+const wakeLockCatch = (err) => console.error(`Unable to obtain wakeLock: ${err}`);
+
+const checkWakeLock = () =>
+	(getParam('wakeLock') !== false &&
+	 navigator.wakeLock.request('screen').then(wakeLockSuccess, wakeLockCatch)) ||
+	console.log(`wakeLock not requested`);
+
 const viewHeight = getHeight();
 const viewWidth = getWidth();
 const svgTag = getCurrentSvg();
@@ -555,3 +578,4 @@ svgTag.setAttribute('width', viewWidth);
 svgTag.addEventListener('click', () => grabScreenshot(svgTag));
 svgTag.addEventListener('wheel', handleWheel(svgTag));
 loadNew(svgTag);
+checkWakeLock();

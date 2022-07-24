@@ -21,6 +21,7 @@ Click on the image to save a screenshot (generated in browser -- that was fun to
 - "[groupRotation](https://pschieszer.github.io/screens/rorschach.html?pointSource=sinus&pointCount=360&frameCount=3&groupRotation=10)": if not 0, will rotate each frame a random number of degrees up to this value. So if you chose 10, a frame would be tilted somewhere in a 10 degree arc from level.
 - "height": height in pixels of resulting image (default is current window height)
 - "width": width in pixels of resulting image (default is current window width)
+- "wakeLock": set to "true" to keep screen from turning off (kiosk mode)
 - "pointSource": comma-separated list of any of the following options, defaults to rorschach
   - "[rorschach](https://pschieszer.github.io/screens/rorschach.html?pointCount=820&frameCount=5&delay=7500&spread=45)": classic rorschach pattern mode, with pixel symmetry changing randomly for more organic look. Make spread lower like 35 for tight groupings or greater than 85 for loose.
   - "[hilbert](https://pschieszer.github.io/screens/rorschach.html?pointSource=hilbert&pointCount=683&frameCount=5&delay=7500&spread=8)": colored hilbert curve fractal with points separated by spread pixels (default 5), pretty, would be better animated, pointCount values with interesting binary representations look cool in this source. Of course, if you prefer squares, lower spread to 2 or 3 and use a power of 2 for pointCount.
