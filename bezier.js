@@ -46,7 +46,7 @@ const reduceToGuide = (pointCount) => (acc, curr, ndx, src) => {
 const reduceByLerp = (acc, curr, ndx, src) => {
     if (acc.length > 0) {
         const left = acc.pop();
-        acc.push(left.map((x, ndx) => lerp(x, curr[ndx], ndx / curr.length)));
+        acc.push(left.map((x, guideNdx) => lerp(x, curr[guideNdx], guideNdx / curr.length)));
         if (src.length - ndx > 1) {
             acc.push(curr);
         }
@@ -59,8 +59,7 @@ const reduceByLerp = (acc, curr, ndx, src) => {
 const reduceToLines = (acc, curr, ndx, src) => {
     if (acc.length > 0) {   
         const left = acc.pop();
-        const showLines = document.getElementById("showLines").checked;
-        acc.push(buildLine(left, curr, "black", showLines));
+        acc.push(buildLine(left, curr, "black", document.getElementById("showLines").checked));
         if (src.length - ndx > 1) {
             acc.push(curr);
         }
@@ -83,14 +82,19 @@ const buildCurve = (lerpPoints, pointCount, showStrings) => {
 // map from control points to "guide points"
 // and then lerp every consecutive pair of guide points until down to two 
 const buildExtended = (pointCount = 10, ...points) => {
-    const guidePoints = points.reduce(reduceToGuide(pointCount), []);
+    const realPoints = [...points];
+    if (document.getElementById("closed").checked) {
+        realPoints.push(points[0]);
+    }
+    const guidePoints = realPoints.reduce(reduceToGuide(pointCount), []);
     let lerpPoints = JSON.parse(JSON.stringify(guidePoints));
     while (lerpPoints.length > 2) {
         lerpPoints = lerpPoints.reduce(reduceByLerp, []);
     }
     const showStrings = document.getElementById("showStrings").checked;
     const result = "".padStart(pointCount).split("").map(buildCurve(lerpPoints, pointCount, showStrings));
-    const lines = points.reduce(reduceToLines, []);
+    const lastNdx = lerpPoints[0].length - 1;
+    const lines = realPoints.reduce(reduceToLines, []);
     result.push(...lines);
     return result;
 }
@@ -147,14 +151,10 @@ const buildPen = () => {
 const toggleLines = () => {
     const children = document.getElementById("bezier").childNodes[0].childNodes;
     const showLines = document.getElementById("showLines").checked;
-    children.forEach(elem => {
-        if (elem.nodeName == 'line') {
-            const color = elem.getAttribute('stroke');
-            if (color === "black") {
-                elem.setAttribute("display", showLines ? "all" : "none");
-            }
-        }
-    });
+    const display = showLines ? "all" : "none";
+    [...children].filter(x => x.nodeName == 'line')
+        .filter(x => x.getAttribute('stroke') === "black")
+        .forEach(x => x.setAttribute("display", display));
 }
 
 const Url = window.URL || window.webkitURL || window;
