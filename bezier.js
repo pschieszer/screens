@@ -46,7 +46,7 @@ const reduceToGuide = (pointCount) => (acc, curr, ndx, src) => {
 const reduceByLerp = (acc, curr, ndx, src) => {
     if (acc.length > 0) {
         const left = acc.pop();
-        acc.push(left.map((x, ndx) => lerp(x, curr[ndx], ndx / curr.length)));
+        acc.push(left.map((x, guideNdx) => lerp(x, curr[guideNdx], guideNdx / curr.length)));
         if (src.length - ndx > 1) {
             acc.push(curr);
         }
@@ -59,8 +59,7 @@ const reduceByLerp = (acc, curr, ndx, src) => {
 const reduceToLines = (acc, curr, ndx, src) => {
     if (acc.length > 0) {   
         const left = acc.pop();
-        const showLines = document.getElementById("showLines").checked;
-        acc.push(buildLine(left, curr, "black", showLines));
+        acc.push(buildLine(left, curr, "black", document.getElementById("showLines").checked));
         if (src.length - ndx > 1) {
             acc.push(curr);
         }
@@ -70,20 +69,32 @@ const reduceToLines = (acc, curr, ndx, src) => {
     return acc;
 }
 
+const buildCurve = (lerpPoints, pointCount, showStrings) => {
+    return (showStrings) ?
+        (x, ndx) =>
+            buildLine(lerpPoints[0][ndx], lerpPoints[1][ndx],
+                `hsl(${ndx * (360 / pointCount)} 100% 50%)`, true) :
+        (x, ndx, src) =>
+            buildDot(lerpPoints[0][ndx], lerpPoints[1][ndx],
+                ndx / (src.length - 1), ndx * (360 / pointCount));
+}
+
 // map from control points to "guide points"
 // and then lerp every consecutive pair of guide points until down to two 
 const buildExtended = (pointCount = 10, ...points) => {
-    const guidePoints = points.reduce(reduceToGuide(pointCount), []);
+    const realPoints = [...points];
+    if (document.getElementById("closed").checked) {
+        realPoints.push(points[0]);
+    }
+    const guidePoints = realPoints.reduce(reduceToGuide(pointCount), []);
     let lerpPoints = JSON.parse(JSON.stringify(guidePoints));
     while (lerpPoints.length > 2) {
         lerpPoints = lerpPoints.reduce(reduceByLerp, []);
     }
-    const result = "".padStart(pointCount)
-        .split("")
-        .map((x, ndx, src) =>
-            buildDot(lerpPoints[0][ndx], lerpPoints[1][ndx],
-                ndx / (src.length - 1), ndx * (360 / pointCount)));
-    const lines = points.reduce(reduceToLines, []);
+    const showStrings = document.getElementById("showStrings").checked;
+    const result = "".padStart(pointCount).split("").map(buildCurve(lerpPoints, pointCount, showStrings));
+    const lastNdx = lerpPoints[0].length - 1;
+    const lines = realPoints.reduce(reduceToLines, []);
     result.push(...lines);
     return result;
 }
@@ -121,28 +132,31 @@ const buildSVG = (height, controlPoints, guidePoints) => {
     result.setAttribute('viewbox', `0 0 ${height} ${height}`);
     result.setAttribute('height', height);
     result.setAttribute('width', height);
+    result.setAttribute('id', 'svgTag')
     result.addEventListener('click', buildClicker(result, controlPoints, guidePoints));
     return result;
 }
+
+const windowScaler = .75;
 
 const buildPen = () => {
     const parent = document.getElementById("bezier");
     while (parent.childNodes.length > 0) parent.removeChild(parent.childNodes[0]);
     const controlPoints = Number(document.getElementById("controlPoints").value);
     const guidePoints = Number(document.getElementById("guidePoints").value);
-    const size = Math.max(Math.min(window.innerWidth * .8, window.innerHeight * .8), 300);
+    const size = Math.max(Math.min(window.innerWidth * windowScaler, window.innerHeight * windowScaler), 300);
     parent.appendChild(buildSVG(size, controlPoints, guidePoints));
 }
 
 const toggleLines = () => {
     const children = document.getElementById("bezier").childNodes[0].childNodes;
     const showLines = document.getElementById("showLines").checked;
-    children.forEach(elem => {
-        if (elem.nodeName == 'line') {
-            elem.setAttribute("display", showLines ? "all" : "none");
-        }
-    });
+    const display = showLines ? "all" : "none";
+    [...children].filter(x => x.nodeName == 'line')
+        .filter(x => x.getAttribute('stroke') === "black")
+        .forEach(x => x.setAttribute("display", display));
 }
+
 const Url = window.URL || window.webkitURL || window;
 
 const saveFile = (parentUrl, dataUrl, fileName) => {
@@ -155,27 +169,32 @@ const saveFile = (parentUrl, dataUrl, fileName) => {
     Url.revokeObjectURL(parentUrl);
 }
 
-const buildShotUrl = (shotImage) => {
+const buildShotUrl = (shotImage, width, height) => {
     let shotCanvas = document.createElement('canvas');
-    shotCanvas.width = viewWidth;
-    shotCanvas.height = viewHeight;
+    shotCanvas.width = width;
+    shotCanvas.height = height;
     let shotContext = shotCanvas.getContext('2d');
     shotContext.drawImage(shotImage, 0, 0);
     return shotCanvas.toDataURL();
 }
 
-const buildShotCanvas = (shotImage, shotUrl) => () => {
-    saveFile(shotUrl, buildShotUrl(shotImage), "bezier_" + new Date().toISOString() + ".png");
+const buildShotCanvas = (shotImage, shotUrl, width, height) => { 
+    return () => {
+        saveFile(shotUrl, buildShotUrl(shotImage, width, height), "bezier_" + new Date().toISOString() + ".png");
+        defaultState.isAnimating = true;
+    }
 };
 
 const grabScreenshot = () => {
-    const svgTag = document.getElementById("bezier").childNodes[0];
-    let shotImage = new Image();
-    let tagClone = svgTag.cloneNode(true);
-    let shotBlob = new Blob([tagClone.outerHTML], {type: "image/svg+xml;charset=utf-8"});
-    let shotUrl = URL.createObjectURL(shotBlob);
+    const svgTag = document.getElementById("svgTag");
+    const width = Number(svgTag.getAttribute('width'));
+    const height = Number(svgTag.getAttribute('height'));
+    const shotImage = new Image();
+    const tagClone = svgTag.cloneNode(true);
+    const shotBlob = new Blob([tagClone.outerHTML], {type: "image/svg+xml;charset=utf-8"});
+    const shotUrl = URL.createObjectURL(shotBlob);
     shotImage.src = shotUrl;
-    shotImage.onload = buildShotCanvas(shotImage, shotUrl);
+    shotImage.onload = buildShotCanvas(shotImage, shotUrl, width, height);
 };
 
 const controlPoints = document.getElementById("controlPoints");

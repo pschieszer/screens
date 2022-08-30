@@ -20,9 +20,9 @@
 				<div class="col-4">
 					<label for="controlPoints">Number of Control Points</label>
 					<select id="controlPoints" name="controlPoints">
-						<option value="3" selected>3</option>
+						<option value="3">3</option>
 						<option value="4">4</option>
-						<option value="5">5</option>
+						<option value="5" selected>5</option>
 						<option value="6">6</option>
 						<option value="7">7</option>
 						<option value="8">8</option>
@@ -32,7 +32,7 @@
 				<div class="col-4">
 					<label for="guidePoints">Number of Guide Points</label>
 					<select id="guidePoints" name="guidePoints">
-						<option value="15" selected>15</option>
+						<option value="15">15</option>
 						<option value="20">20</option>
 						<option value="25">25</option>
 						<option value="30">30</option>
@@ -49,12 +49,22 @@
 						<option value="85">85</option>
 						<option value="90">90</option>
 						<option value="95">95</option>
-						<option value="100">100</option>
+						<option value="100" selected>100</option>
 					</select>
 				</div>
+			</div>
+			<div class="row">
 				<div class="col-4">
 					<input type="checkbox" id="showLines" name="showLines" value="Show Lines" checked>
 					<label for="showLines">Show lines connecting Control Points?</label>
+				</div>
+				<div class="col-4">
+					<input type="checkbox" id="showStrings" name="showString" value="Show String Art">
+					<label for="showStrings">Show string art version?</label>
+				</div>
+				<div class="col-4">
+					<input type="checkbox" id="closed" name="closed" value="Closed">
+					<label for="closed">Closed loop?</label>
 				</div>
 			</div>
 			<div class="row">
@@ -68,8 +78,6 @@
 				</div>
 			</div>
 		</main>
-		<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-		<script src="https://getbootstrap.com/docs/4.0/dist/js/bootstrap.min.js"></script>
 		<script type="text/javascript" src="bezier.js"></script>
 	</body>
 </html>
