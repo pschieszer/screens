@@ -8,7 +8,7 @@ const lerp = (start, end, fraction) => {
 const findPoints = (left, right, count) =>
     "".padStart(count).split("").map((x, ndx, src) => lerp(left, right, ndx / src.length));
 
-const buildDot = (left, right, fraction, color) => {
+const buildDot = (left, right, fraction, color, showDot) => {
     const foundPoint = lerp(left, right, fraction);
     const result = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     result.setAttribute("cx", `${foundPoint.x}`);
@@ -16,6 +16,7 @@ const buildDot = (left, right, fraction, color) => {
     result.setAttribute("r", `1`);
     const currCol = `hsl(${color} 100% 50%)`;
     result.setAttribute("fill", currCol);
+    result.setAttribute("display", showDot ? "all" : "none");
     return result;
 };
 
@@ -69,15 +70,15 @@ const reduceToLines = (acc, curr, ndx, src) => {
     return acc;
 }
 
-const buildCurve = (lerpPoints, pointCount, showStrings) => {
-    return (showStrings) ?
-        (x, ndx) =>
+const buildCurve = (lerpPoints, pointCount, showStrings) =>
+    (x, ndx, src) => {
+        return [
             buildLine(lerpPoints[0][ndx], lerpPoints[1][ndx],
-                `hsl(${ndx * (360 / pointCount)} 100% 50%)`, true) :
-        (x, ndx, src) =>
+                `hsl(${ndx * (360 / pointCount)} 100% 50%)`, showStrings),
             buildDot(lerpPoints[0][ndx], lerpPoints[1][ndx],
-                ndx / (src.length - 1), ndx * (360 / pointCount));
-}
+                ndx / (src.length - 1), ndx * (360 / pointCount), !showStrings)
+        ];
+    }
 
 // map from control points to "guide points"
 // and then lerp every consecutive pair of guide points until down to two 
@@ -92,7 +93,7 @@ const buildExtended = (pointCount = 10, ...points) => {
         lerpPoints = lerpPoints.reduce(reduceByLerp, []);
     }
     const showStrings = document.getElementById("showStrings").checked;
-    const result = "".padStart(pointCount).split("").map(buildCurve(lerpPoints, pointCount, showStrings));
+    const result = "".padStart(pointCount).split("").flatMap(buildCurve(lerpPoints, pointCount, showStrings));
     const lastNdx = lerpPoints[0].length - 1;
     const lines = realPoints.reduce(reduceToLines, []);
     result.push(...lines);
@@ -157,6 +158,18 @@ const toggleLines = () => {
         .forEach(x => x.setAttribute("display", display));
 }
 
+const toggleStrings = () => {
+    const children = document.getElementById("bezier").childNodes[0].childNodes;
+    const showStrings = document.getElementById("showStrings").checked;
+    let display = showStrings ? "all" : "none";
+    [...children].filter(x => x.nodeName == 'line')
+        .filter(x => x.getAttribute('stroke') !== "black")
+        .forEach(x => x.setAttribute("display", display));
+    display = showStrings ? "none" : "all";
+    [...children].filter(x => x.nodeName == 'circle')
+        .forEach(x => x.setAttribute("display", display));
+}
+
 const Url = window.URL || window.webkitURL || window;
 
 const saveFile = (parentUrl, dataUrl, fileName) => {
@@ -203,6 +216,8 @@ const guidePoints = document.getElementById("guidePoints");
 guidePoints.addEventListener('change', () => buildPen());
 const showLines = document.getElementById("showLines");
 showLines.addEventListener('change', () => toggleLines());
+const showStrings = document.getElementById("showStrings");
+showStrings.addEventListener('change', () => toggleStrings());
 const save = document.getElementById("save");
 save.addEventListener('click', () => grabScreenshot());
 
