@@ -82,9 +82,9 @@ const buildCurve = (lerpPoints, pointCount, showStrings) =>
 
 // map from control points to "guide points"
 // and then lerp every consecutive pair of guide points until down to two 
-const buildExtended = (pointCount = 10, ...points) => {
+const buildExtended = (isClosed, pointCount = 10, ...points) => {
     const realPoints = [...points];
-    if (document.getElementById("closed").checked) {
+    if (isClosed) {
         realPoints.push(points[0]);
     }
     const guidePoints = realPoints.reduce(reduceToGuide(pointCount), []);
@@ -110,23 +110,82 @@ const drawTextCell = ({x, y}, num) => {
     return result;
 };
 
-const buildClicker = (svg, controlPoints, guidePoints) => {
-    const points = [];
+class PointTracker {
+    points;
+    isDisplayed;
+    order;
+    svg;
+    guidePoints;
+    isClosed;
 
-    return (event) => {
+    constructor(order, guidePoints, svg) {
+        this.order = order;
+        this.points = [];
+        this.isDisplayed = false;
+        this.guidePoints = guidePoints;
+        this.checkClosed();
+    }
+
+    checkClosed() {
+        this.isClosed = document.getElementById("closed").checked;
+        this.clearPic();
+        this.evaluatePoints(false);
+    }
+
+    setSvg(svg) { this.svg = svg; }
+
+    setGuidePoints(guidePoints) {
+        this.guidePoints = guidePoints;
+        this.clearPic();
+        this.evaluatePoints(false);
+    }
+
+    clear() { while (this.points.length > 0) this.points.pop(); }
+
+    onClick(event) {
         const currPoint = { x: event.offsetX, y: event.offsetY };
-        points.push(currPoint);
-        if (points.length === controlPoints) {
-            while (svg.childNodes.length > 0) svg.removeChild(svg.childNodes[0]);
-            buildExtended(guidePoints, ...points).forEach(x => svg.appendChild(x));
-            while (points.length > 0) points.pop();
-        } else {
-            svg.appendChild(drawTextCell(currPoint, points.length));
+        if (this.isDisplayed) {
+            this.isDisplayed = false;
+            this.clear();
         }
+        this.points.push(currPoint);
+        this.evaluatePoints();
+    }
+
+    evaluatePoints(incremental = true) {
+        this.isDisplayed = this.points.length >= this.order;
+        if (this.isDisplayed) {
+            this.drawPic();
+        } else {
+            if (incremental) {
+                const currPoint = this.points[this.points.length - 1];
+                this.svg.appendChild(drawTextCell(currPoint, this.points.length));
+            } else {
+                this.points.map((x, ndx) => drawTextCell(x, ndx + 1)).forEach(x => this.svg.appendChild(x));
+            }
+        }
+    }
+
+    clearPic() {
+        if (this.svg && this.svg.childNodes)
+            while (this.svg.childNodes.length > 0)
+                this.svg.removeChild(this.svg.childNodes[0]);
+    }
+
+    drawPic() {
+        this.clearPic();
+        buildExtended(this.isClosed, this.guidePoints, ...this.points).forEach(x => this.svg.appendChild(x));
+    }
+
+    setOrder(order) {
+        this.order = order;
+        this.points = this.points.filter((x, ndx) => ndx < this.order);
+        this.clearPic();
+        this.evaluatePoints(false);
     }
 }
 
-const buildSVG = (height, controlPoints, guidePoints) => {
+const buildSVG = (height, pointTracker) => {
     const result = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     result.setAttribute("version", "1.0");
     result.setAttribute("style", "background-color: white");
@@ -134,19 +193,23 @@ const buildSVG = (height, controlPoints, guidePoints) => {
     result.setAttribute('height', height);
     result.setAttribute('width', height);
     result.setAttribute('id', 'svgTag')
-    result.addEventListener('click', buildClicker(result, controlPoints, guidePoints));
+    result.addEventListener('click', e => pointTracker.onClick(e));
     return result;
 }
 
 const windowScaler = .75;
 
-const buildPen = () => {
+const buildPen = (startingPoints = []) => {
     const parent = document.getElementById("bezier");
     while (parent.childNodes.length > 0) parent.removeChild(parent.childNodes[0]);
     const controlPoints = Number(document.getElementById("controlPoints").value);
     const guidePoints = Number(document.getElementById("guidePoints").value);
+    const pointTracker = new PointTracker(controlPoints, guidePoints);
     const size = Math.max(Math.min(window.innerWidth * windowScaler, window.innerHeight * windowScaler), 300);
-    parent.appendChild(buildSVG(size, controlPoints, guidePoints));
+    const svg = buildSVG(size, pointTracker);
+    pointTracker.setSvg(svg);
+    parent.appendChild(svg);
+    return pointTracker;
 }
 
 const toggleLines = () => {
@@ -210,15 +273,13 @@ const grabScreenshot = () => {
     shotImage.onload = buildShotCanvas(shotImage, shotUrl, width, height);
 };
 
-const controlPoints = document.getElementById("controlPoints");
-controlPoints.addEventListener('change', () => buildPen());
-const guidePoints = document.getElementById("guidePoints");
-guidePoints.addEventListener('change', () => buildPen());
-const showLines = document.getElementById("showLines");
-showLines.addEventListener('change', () => toggleLines());
-const showStrings = document.getElementById("showStrings");
-showStrings.addEventListener('change', () => toggleStrings());
-const save = document.getElementById("save");
-save.addEventListener('click', () => grabScreenshot());
+const pointTracker = buildPen();
 
-buildPen();
+document.getElementById("controlPoints")
+    .addEventListener('change', (e) => pointTracker.setOrder(Number(e.target.value)));
+document.getElementById("guidePoints")
+    .addEventListener('change', (e) => pointTracker.setGuidePoints(Number(e.target.value)));
+document.getElementById("showLines").addEventListener('change', () => toggleLines());
+document.getElementById("showStrings").addEventListener('change', () => toggleStrings());
+document.getElementById("closed").addEventListener('change', () => pointTracker.checkClosed());
+document.getElementById("save").addEventListener('click', () => grabScreenshot());
